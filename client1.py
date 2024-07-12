@@ -1,5 +1,5 @@
 import socket 
-  
+#COMENTEI
 UDP_IP = "localhost"
 UDP_PORT = 8080
 
