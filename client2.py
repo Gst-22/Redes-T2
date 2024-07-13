@@ -15,8 +15,11 @@ s1.listen()
 
 sndr, addr1 = s1.accept()
 print (f"Conectado com {addr1}")
+data = sndr.recv(1024)
+print (f"{data!r}")
 
 s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
 s2.connect((UDP_IP2, UDP_PORT2))
 
 print (f"Conectado com servidor")
+s2.sendall(b"TESTE 2")
