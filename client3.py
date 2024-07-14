@@ -1,23 +1,23 @@
 import socket 
-  
+
+machine_number = int(input("Numero da Maquina: "))
+
 UDP_IP = "localhost"
-UDP_PORT = 8081
+CLA_PORT = 8083
+CLB_PORT = 8081
 
-UDP_IP2 = "localhost"
-UDP_PORT2 = 8082
-    
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-sock.bind((UDP_IP, UDP_PORT))
-sock.listen()
 
-sndr, addr = sock.accept()
+clA = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+clB = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+clA.bind((UDP_IP, CLA_PORT))
 
-print (f"Conectado com {addr}")
-data = sndr.recv(1024)
-print (f"{data!r}")
+if machine_number == 1:
+    message = input("Digite banana\n")
+    clB.sendto(message.encode(),(UDP_IP, CLB_PORT))
 
-s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-s2.connect((UDP_IP2, UDP_PORT2))
-
-print (f"Conectado com servidor")
-s2.sendall(b"TESTE 3")
+while True:
+    data, addr = clA.recvfrom(1024)
+    if data:
+        print(str(data).encode("utf-8"))
+        message = input()
+        clB.sendto(message.encode(),(UDP_IP, CLB_PORT))
