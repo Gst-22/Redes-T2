@@ -1,5 +1,7 @@
 import socket
-import config as config 
+import config as config
+import ast
+import network as net
 
 machine_number = int(input("Numero da Maquina: "))
 UDP_IP = "localhost"
@@ -14,11 +16,14 @@ clA.bind((UDP_IP, RCV_PORT))
 
 if machine_number == 1:
     message = input("Digite banana\n")
-    clB.sendto(message.encode(),(UDP_IP, SND_PORT))
+    net.mesageTo(message.encode(), machine_number, 2, UDP_IP, SND_PORT, RCV_PORT)
 
 while True:
     data, addr = clA.recvfrom(1024)
     if data:
-        print(str(data).encode("utf-8"))
-        message = input()
-        clB.sendto(message.encode(),(UDP_IP, SND_PORT))
+        message = ast.literal_eval(data.decode())
+        if message["destino"] == machine_number:
+            print(message["msg"].decode())
+        else:
+            clB.sendto(data, (UDP_IP, SND_PORT))
+            
