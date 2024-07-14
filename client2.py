@@ -1,25 +1,22 @@
-
-# importing socket module 
 import socket 
-  
-UDP_IP1 = "localhost"
-UDP_PORT1 = 8080
 
-UDP_IP2 = "localhost"
-UDP_PORT2 = 8081
+machine_number = int(input("Numero da Maquina"))
 
-s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s1.bind((UDP_IP1, UDP_PORT1))
-s1.listen()
+UDP_IP = "localhost"
+CLA_PORT = 8082
+CLB_PORT = 8081
 
+message = "Token "
 
-sndr, addr1 = s1.accept()
-print (f"Conectado com {addr1}")
-data = sndr.recv(1024)
-print (f"{data!r}")
+clA = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+clB = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+clA.bind((UDP_IP, CLA_PORT))
 
-s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-s2.connect((UDP_IP2, UDP_PORT2))
+if machine_number == 1:
+    clB.sendto(message.encode(),(UDP_IP, CLB_PORT))
 
-print (f"Conectado com servidor")
-s2.sendall(b"TESTE 2")
+while True:
+    data, addr = clA.recvfrom(1024)
+    if data:
+        clB.sendto(message.encode(),(UDP_IP, CLB_PORT))
+        print(str(data).encode("utf-8"))

@@ -1,21 +1,24 @@
 import socket 
+
+machine_number = int(input("Numero da Maquina"))
+
 UDP_IP = "localhost"
-UDP_PORT = 8080
+CLA_PORT = 8081
+CLB_PORT = 8082
 
-UDP_IP2 = "localhost"
-UDP_PORT2 = 8082
+message = "Token"
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.connect((UDP_IP, UDP_PORT))
+clA = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+clB = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+clA.bind((UDP_IP, CLA_PORT))
 
-print (f"Conectado com servidor")
-sock.sendall(b"TESTE 1")
 
-sock2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock2.bind((UDP_IP2, UDP_PORT2))
-sock2.listen()
+if machine_number == 1:
+    clB.sendto(message.encode(),(UDP_IP, CLB_PORT))
 
-sndr, addr = sock2.accept()
-print (f"Conectado com {addr}")
-data = sndr.recv(1024)
-print (f"{data!r}")
+while True:
+    data, addr = clA.recvfrom(1024)
+    if data:
+        clB.sendto(message.encode(),(UDP_IP, CLB_PORT))
+        print(str(data).encode("utf-8"))
+        
