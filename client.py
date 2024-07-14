@@ -2,6 +2,7 @@ import socket
 import config as config
 import ast
 import network as net
+from network import Message
 
 machine_number = int(input("Numero da Maquina: "))
 UDP_IP = "localhost"
@@ -15,15 +16,27 @@ clB = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 clA.bind((UDP_IP, RCV_PORT))
 
 if machine_number == 1:
-    message = input("Digite banana\n")
-    net.mesageTo(message.encode(), machine_number, 2, UDP_IP, SND_PORT, RCV_PORT)
+    
+    text = input("Digite Mensagem\n")
+    message = Message(machine_number, int(input("Digite Destinatario:")), text, 0) 
+    net.messageTo(message, UDP_IP, SND_PORT)
+    
+    while True:
+        data, addr = clA.recvfrom(1024)
+        if data:
+            message = ast.literal_eval(data.decode())
+            if message["origem"] == machine_number and message["recebido"] == 1:
+                print("Enviado com Sucesso")
+            else:
+                print("Caguei no peidar")
 
 while True:
     data, addr = clA.recvfrom(1024)
     if data:
         message = ast.literal_eval(data.decode())
         if message["destino"] == machine_number:
-            print(message["msg"].decode())
+            print(message["msg"])
+            message["recebido"] = 1
+            net.messageTo(message, UDP_IP, SND_PORT)
         else:
-            clB.sendto(data, (UDP_IP, SND_PORT))
-            
+            net.messageTo(message, UDP_IP, SND_PORT)

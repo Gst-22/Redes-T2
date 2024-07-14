@@ -10,9 +10,7 @@ class Message:
     def __str__(self):
         return str(self.__dict__)
 
-def mesageTo(data, sender_number, receiver_number , UPD_IP, SND_PORT, RCV_PORT):
-
-    message = Message(sender_number, receiver_number, data, 0) 
+def messageTo(message, UPD_IP, SND_PORT):
 
     send = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     send.sendto(str(message).encode("utf-8"), (UPD_IP, SND_PORT))
