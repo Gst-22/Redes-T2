@@ -1,7 +1,17 @@
 import random
 
-def carteado (tam):
+def sorteia (tam):
     sorteio = random.sample(range(40), tam)
+    return sorteio
+
+def sorteiaMaos(tam_mao):
+    cartado = []
+    for i in range(4):
+        mao = sorteia(tam_mao)
+        cartado.append(mao)
+    return cartado
+
+def traduzCartas (sorteio):
     cartas = []
     for carta in sorteio:
         n = int(carta / 10)
@@ -40,6 +50,3 @@ def carteado (tam):
         cartas.append(numero + " de " + naipe)
 
     return cartas
-
-
-print(carteado(8))
