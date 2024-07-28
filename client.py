@@ -21,6 +21,7 @@ tamMaoAtual = 4
 (maiorCarta, lider) = (0, 0)
 pontuacaoRodada = [0, 0, 0, 0]
 apostasDaRodada = [0, 0, 0, 0]
+vidas = [4  , 4  , 4  , 4]
 
 if machine_number == 1: #Maquina 1 começa como carteado
     souCarteador = True
@@ -72,7 +73,7 @@ while True: #espero mensagem, envio confirmação.
                     
                     if not souCarteador:
                         message = Message(1, machine_number, (machine_number % 4) + 1, 0, 0)#passo a vez pro proximo
-                        enviado = net.ringMessage(message, machine_number, UDP_IP, SND_PORT, rcv_skt)#o guina é um viado
+                        enviado = net.ringMessage(message, machine_number, UDP_IP, SND_PORT, rcv_skt)
                     else:
                         if select % 10 > maiorCarta % 10: #se a carta que eu joguei é a maior, eu sou o lider
                             lider = machine_number
@@ -85,14 +86,16 @@ while True: #espero mensagem, envio confirmação.
                         enviado = net.ringMessage(my_message, machine_number, UDP_IP, SND_PORT, rcv_skt)
 
                         if len(maoNumerica) > 0:
-                            my_message = Message(1, machine_number, (machine_number % 4) + 1, 0, 0)#começa apostas
+                            (maiorCarta, lider) = (0, 0)
+                            my_message = Message(1, machine_number, (machine_number % 4) + 1, 0, 0)#começa proxima rodada
                             enviado = net.ringMessage(my_message, machine_number, UDP_IP, SND_PORT, rcv_skt)
                         else: #se acabaram as cartas, acabou a rodada
-                            for i in range(4): #para cada jogador, verifica se a aposta foi correta, se não, perdeu
+                            for i in range(4): #para cada jogador, verifica se a aposta foi correta, se não, perde uma vida
                                 if apostasDaRodada[i] != pontuacaoRodada[i]:
-                                    print(str(i+1) + " perdeu")
-                                else:
-                                    print(str(i+1) + " ganhou")
+                                    vidasPerdidas = abs(apostasDaRodada[i] - pontuacaoRodada[i]) #calcula quantas vidas foram perdidas
+                                    aviso = str(i+1) + " " + str(vidasPerdidas) #a mensagem deve indicar quantas vidas foram perdidas e quem perdeu
+                                    my_message = Message(7, machine_number, 5, aviso, 0)#mensagem de perda de vida
+                                    enviado = net.ringMessage(my_message, machine_number, UDP_IP, SND_PORT, rcv_skt)
                 
                 case 2: #Minha vez de apostar
                     
@@ -117,7 +120,7 @@ while True: #espero mensagem, envio confirmação.
                 case 3: # Minhas cartas recebidas
                     maoNumerica = [int(s) for s in str(message["msg"]).split() if s.isdigit()]
                     print(maoNumerica)
-                    
+
                 case _:
                     print("Poop")
         
@@ -142,8 +145,18 @@ while True: #espero mensagem, envio confirmação.
                         apostasDaRodada[int(message["origem"]) - 1] = int(message["msg"])
                         print("Apostas totais: " + str(apostasTotais))
                 
-                case 6:
+                case 6: # Anuncio de Campeão
                     print("O campeao da rodada é: " + str(message["msg"]))
+                
+                case 7: #Anuncio de perda de vida.
+                    
+                    (perdedor, vidasPerdidas) = [int(s) for s in str(message["msg"]).split() if s.isdigit()] #separa quem perdeu e quantas vidas
+                    vidas[perdedor - 1] -= vidasPerdidas
+                    print(str(perdedor) + " perdeu " + str(vidasPerdidas) + " vidas")
+
+                    if vidas[perdedor - 1] == 0:
+                        print(str(perdedor) + " morreu")                    
+
         
         else: #Mensagem para outra pessoa, passa adiante.
-            net.messageTo(message, UDP_IP, SND_PORT)#obrigado copilot --> o guina é um viado
+            net.messageTo(message, UDP_IP, SND_PORT)
