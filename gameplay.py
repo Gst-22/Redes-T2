@@ -4,15 +4,16 @@ def sorteia (tam):
     sorteio = random.sample(range(40), tam)
     return sorteio
 
-def sorteiaMaos(tam_mao):
-    todas_cartas = sorteia(tam_mao * 4)
+def sorteiaMaos(tam_mao, vivos):
+    todas_cartas = sorteia(tam_mao * vivos + 1)
     carteado = []
-    for i in range(4):
+    for i in range(vivos):
         mao = []
         for j in range(tam_mao):
             mao.append(todas_cartas[i * tam_mao + j])
         carteado.append(mao)
-    return carteado
+    vira = todas_cartas[-1]
+    return (carteado, vira)
 
 def traduzCarta (carta):
     n = int(carta / 10)
@@ -50,3 +51,26 @@ def traduzCarta (carta):
             numero = '3'
     carta_traduzida = naipe + numero
     return carta_traduzida
+
+def compararCartas (cartaA, cartaB, vira):
+    naipeA = int(cartaA / 10)
+    naipeB = int(cartaB / 10)
+    numA = cartaA % 10
+    numB = cartaB % 10
+    manilha = (vira + 1) % 10
+
+    if numA == manilha:
+        numA = 10
+    if numB == manilha:
+        numB = 10
+    
+    if numA > numB:
+        return 1
+    elif numA < numB:
+        return 0
+    else:
+        if naipeA > naipeB:
+            return 1
+        else:
+            return 0
+        

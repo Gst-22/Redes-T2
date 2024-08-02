@@ -37,16 +37,27 @@ while Jogando:
     apostasDaRodada = [0, 0, 0, 0]
 
     if souCarteador: #Carteador inicia o jogo
+        
+        vivos = 0
+        for i in vidas:
+            if i > 0:
+                vivos += 1
+        
         print("Sou o Carteador")
-        carteado = game.sorteiaMaos(tamMaoAtual)#Cria carteado.
+        (carteado, vira) = game.sorteiaMaos(tamMaoAtual, vivos)#Cria carteado.
         maoNumerica = carteado[machine_number - 1]#Minha mão
         print(maoNumerica)
-    
+
+        print("Vira: " + str(vira))
+
         for i in range(4):#Distribui Cartas
             if i != machine_number - 1 and vidas[i] > 0: #garante que eu não receba minhas próprias cartas
                 message = Message(3, machine_number, i+1, ' '.join(map(str, carteado[i])), 0) #mensagem com cartas para cada jogador
                 enviado = net.ringMessage(message, machine_number, UDP_IP, SND_PORT, rcv_skt) #envia
         
+        message = Message(10, machine_number, 5, vira, 0)
+        net.ringMessage(message, machine_number, UDP_IP, SND_PORT, rcv_skt)#anuncia a manilha
+
         for aux in range(3):#Coleta as apostas de todos os jogadores
             i = (machine_number + aux) % 4
             if vidas[i] > 0:    
@@ -79,7 +90,7 @@ while Jogando:
                     message = Message(1, machine_number, i+1, 0, 0)#mensagem de coleta de jogada
                     enviado = net.ringMessage(message, machine_number, UDP_IP, SND_PORT, rcv_skt)
                     jogada = int(enviado) #converte mensagem em jogada
-                    if jogada % 10 > maiorCarta % 10: #se a jogada é maior que o melhor, i vira o lider
+                    if game.compararCartas(jogada, maiorCarta, vira): #se a jogada é maior que o melhor, i vira o lider
                         maiorCarta = jogada #melhor carta = carta de i
                         lider = i + 1 #lider = i
                     print(str(i+1) + " jogou " + str(enviado))#imprime a jogada de i pro carteador
@@ -94,7 +105,7 @@ while Jogando:
 
             maoNumerica.remove(select) #remove carta da mão
             
-            if select % 10 > maiorCarta % 10: #se o carteador jogou uma carta melhor que a melhor carta, ele vira o lider
+            if game.compararCartas(select, maiorCarta, vira): #se o carteador jogou uma carta melhor que a melhor carta, ele vira o lider
                 maiorCarta = select
                 lider = machine_number
             
@@ -220,8 +231,12 @@ while Jogando:
                             Jogando = False
                         
                         rodando = False
+
+                    case 10: #Vira
+                        print("Vira: " + str(message["msg"]))
                 
                 net.messageTo(message, UDP_IP, SND_PORT)
+
             
             elif message["type"] == 4 and vidas[machine_number - 1] > 0: #novo carteador
                 souCarteador = True
