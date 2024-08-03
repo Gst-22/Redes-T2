@@ -46,9 +46,9 @@ while Jogando:
         print("Sou o Carteador")
         (carteado, vira) = game.sorteiaMaos(tamMaoAtual, vivos)#Cria carteado.
         maoNumerica = carteado[machine_number - 1]#Minha mão
-        print(maoNumerica)
+        game.imprimeMao(maoNumerica)
 
-        print("Vira: " + str(vira))
+        print("Vira: " + game.traduzCarta(vira))
 
         for i in range(4):#Distribui Cartas
             if i != machine_number - 1 and vidas[i] > 0: #garante que eu não receba minhas próprias cartas
@@ -90,19 +90,22 @@ while Jogando:
                     message = Message(1, machine_number, i+1, 0, 0)#mensagem de coleta de jogada
                     enviado = net.ringMessage(message, machine_number, UDP_IP, SND_PORT, rcv_skt)
                     jogada = int(enviado) #converte mensagem em jogada
+
                     if game.compararCartas(jogada, maiorCarta, vira): #se a jogada é maior que o melhor, i vira o lider
                         maiorCarta = jogada #melhor carta = carta de i
                         lider = i + 1 #lider = i
+                        
                     print(str(i+1) + " jogou " + str(enviado))#imprime a jogada de i pro carteador
                     anuncio = str(i+1) + ' ' + str(jogada) #anuncio de jogada
                     msg_anuncio = Message(5, machine_number, 5, anuncio, 0) #tipo 5 é anuncio de jogada
                     net.ringMessage(msg_anuncio, machine_number, UDP_IP, SND_PORT, rcv_skt)
 
-            print(maoNumerica)
+            game.imprimeMao(maoNumerica)
             select = int(input("Escolha uma carta:\n")) #vez do carteador
-            while select not in maoNumerica:
+            while select < 0 or select >= len(maoNumerica):
                 select = int(input("Escolha uma carta:\n"))
 
+            select = maoNumerica[select]
             maoNumerica.remove(select) #remove carta da mão
             
             if game.compararCartas(select, maiorCarta, vira): #se o carteador jogou uma carta melhor que a melhor carta, ele vira o lider
@@ -163,13 +166,14 @@ while Jogando:
                 match message["type"]: #que tipo de mensagem?
                     case 1: #Minha vez de jogar
                         
-                        print(maoNumerica)
+                        game.imprimeMao(maoNumerica)
                         select = int(input("Escolha uma carta:\n")) #loop até escolher uma carta válida
-                        while select not in maoNumerica:
+                        while select < 0 and select >= len(maoNumerica):
                             select = int(input("Escolha uma carta:\n"))
 
+                        select = maoNumerica[select]
                         maoNumerica.remove(select) #removo carta da mão
-                        print(maoNumerica)#printo mão atualizada
+                        game.imprimeMao(maoNumerica)#printo mão atualizada
                                     
                         message["msg"] = str(select)#adiciono minha jogada na mensagem
 
@@ -182,7 +186,7 @@ while Jogando:
 
                     case 3: # Minhas cartas recebidas
                         maoNumerica = [int(s) for s in str(message["msg"]).split() if s.isdigit()]
-                        print(maoNumerica)
+                        game.imprimeMao(maoNumerica)
 
                     case _:
                         print("Poop")
@@ -233,7 +237,7 @@ while Jogando:
                         rodando = False
 
                     case 10: #Vira
-                        print("Vira: " + str(message["msg"]))
+                        print("Vira: " + game.traduzCarta(message["msg"]))
                 
                 net.messageTo(message, UDP_IP, SND_PORT)
 

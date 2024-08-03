@@ -52,6 +52,23 @@ def traduzCarta (carta):
     carta_traduzida = naipe + numero
     return carta_traduzida
 
+def imprimeMao (mao):
+    if len(mao) == 0:
+        print("Mao Vazia")
+        return 1
+    
+    if len(mao) == 1:
+        print(traduzCarta(mao[0]))
+        return 1
+
+    impressao = traduzCarta(mao[0])
+    for carta in range(1, len(mao)):
+        impressao += ', ' + traduzCarta(mao[carta])
+    print(impressao)
+
+    return 1
+
+
 def compararCartas (cartaA, cartaB, vira):
     naipeA = int(cartaA / 10)
     naipeB = int(cartaB / 10)
