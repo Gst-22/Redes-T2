@@ -7,11 +7,9 @@ from network import Message
 import time
 
 machine_number = int(input("Numero da Maquina: "))
-UDP_IP = "localhost"
+RCV_PORT, SND_PORT, UDP_IP = config.set_configs(machine_number)
 
-RCV_PORT, SND_PORT = config.config_machine(machine_number)
-
-print ("SEND", SND_PORT, "RECEIVE", RCV_PORT)
+print ("SEND", SND_PORT, "RECEIVE", RCV_PORT, "HOST", UDP_IP)
 
 rcv_skt = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 rcv_skt.bind((UDP_IP, RCV_PORT))
@@ -32,7 +30,6 @@ while Jogando:
 
     rodando = True
 
-    (maiorCarta, lider) = (0, 0)
     pontuacaoRodada = [0, 0, 0, 0]
     apostasDaRodada = [0, 0, 0, 0]
 
@@ -92,10 +89,11 @@ while Jogando:
                     jogada = int(enviado) #converte mensagem em jogada
 
                     if game.compararCartas(jogada, maiorCarta, vira): #se a jogada é maior que o melhor, i vira o lider
+                        print("Jogador " + str(i+1) + " venceu " + game.traduzCarta(maiorCarta) + " com " + game.traduzCarta(jogada))
                         maiorCarta = jogada #melhor carta = carta de i
                         lider = i + 1 #lider = i
                         
-                    print(str(i+1) + " jogou " + str(enviado))#imprime a jogada de i pro carteador
+                    print(str(i+1) + " jogou " + game.traduzCarta(jogada))#imprime a jogada de i pro carteador
                     anuncio = str(i+1) + ' ' + str(jogada) #anuncio de jogada
                     msg_anuncio = Message(5, machine_number, 5, anuncio, 0) #tipo 5 é anuncio de jogada
                     net.ringMessage(msg_anuncio, machine_number, UDP_IP, SND_PORT, rcv_skt)
@@ -160,15 +158,15 @@ while Jogando:
             
             if message["destino"] == machine_number: #mensagem pra mim
                 
-                message["recebido"] = 1 #confirmo recebimento
-                #Passo a mensagem adiante
+                    message["recebido"] = 1 #confirmo recebimento
+                    #Passo a mensagem adiante
 
-                match message["type"]: #que tipo de mensagem?
-                    case 1: #Minha vez de jogar
+                    #que tipo de mensagem?
+                    if message["type"] == 1: #Minha vez de jogar
                         
                         game.imprimeMao(maoNumerica)
                         select = int(input("Escolha uma carta:\n")) #loop até escolher uma carta válida
-                        while select < 0 and select >= len(maoNumerica):
+                        while select < 0 or select >= len(maoNumerica):
                             select = int(input("Escolha uma carta:\n"))
 
                         select = maoNumerica[select]
@@ -177,42 +175,42 @@ while Jogando:
                                     
                         message["msg"] = str(select)#adiciono minha jogada na mensagem
 
-                    case 2: #Minha vez de apostar
+                    elif message["type"] == 2: #Minha vez de apostar
                         select = int(input("Faz quantos?\n"))#loop até escolher uma aposta válida
                         while select > tamMaoAtual or select < 0: #jogadores devem fazer apostas válidas
                             select = int(input("Faz quantos?\n"))
                     
                         message["msg"] = str(select)#adiciono minha aposta na mensagem
 
-                    case 3: # Minhas cartas recebidas
+                    elif message["type"] == 3: # Minhas cartas recebidas
                         maoNumerica = [int(s) for s in str(message["msg"]).split() if s.isdigit()]
                         game.imprimeMao(maoNumerica)
 
-                    case _:
+                    else:
                         print("Poop")
             
-                net.messageTo(message, UDP_IP, SND_PORT)
+                    net.messageTo(message, UDP_IP, SND_PORT)
             
             elif message["destino"] == 5: #mensagem para todos.
                 
-                message["recebido"] += 1 #aumento o recebimento
-                #Passo a mensagem adiante
+                    message["recebido"] += 1 #aumento o recebimento
+                    #Passo a mensagem adiante
 
-                match message["type"]: #que tipo de mensagem?
-                    case 5: #anuncio de jogada
+                    #que tipo de mensagem?
+                    if message["type"] == 5: #anuncio de jogada
                         (jogador, jogada) = [int(s) for s in str(message["msg"]).split() if s.isdigit()] #separa quem jogou e o que jogou
                         if jogador != machine_number:
-                            print(str(jogador) + " jogou " + str(jogada)) #imprime a jogada
+                            print(str(jogador) + " jogou " + game.traduzCarta(jogada)) #imprime a jogada
 
-                    case 6: #anuncio de aposta
+                    elif message["type"] == 6: #anuncio de aposta
                         (apostador, aposta) = [int(s) for s in str(message["msg"]).split() if s.isdigit()] #separa quem apostou e quanto apostou
                         if apostador != machine_number:
                             print(str(apostador) + " apostou " + str(aposta)) #imprime a aposta
                         
-                    case 7: # Anuncio de Campeão
-                        print("O campeao da rodada é: " + str(message["msg"]))
+                    elif message["type"] == 7: # Anuncio de Campeão
+                        print("O jogador " + str(message["msg"]) + " pontuou")
                     
-                    case 8: #Anuncio de perda de vida.
+                    elif message["type"] == 8: #Anuncio de perda de vida.
                         
                         (perdedor, vidasPerdidas) = [int(s) for s in str(message["msg"]).split() if s.isdigit()] #separa quem perdeu e quantas vidas
                         vidas[perdedor - 1] -= vidasPerdidas #reduz as vida do perdedor
@@ -221,7 +219,7 @@ while Jogando:
                         if vidas[perdedor - 1] <= 0: #se o perdedor ficou sem vidas, ele morre
                             print(str(perdedor) + " morreu")      
                     
-                    case 9: #Fim de rodada
+                    elif message["type"] == 9: #Fim de rodada
                         print("Fim de rodada")
                         
                         vivos = 0
@@ -236,10 +234,10 @@ while Jogando:
                         
                         rodando = False
 
-                    case 10: #Vira
+                    elif message["type"] == 10: #Vira
                         print("Vira: " + game.traduzCarta(message["msg"]))
                 
-                net.messageTo(message, UDP_IP, SND_PORT)
+                    net.messageTo(message, UDP_IP, SND_PORT)
 
             
             elif message["type"] == 4 and vidas[machine_number - 1] > 0: #novo carteador

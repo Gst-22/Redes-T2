@@ -16,41 +16,39 @@ def sorteiaMaos(tam_mao, vivos):
     return (carteado, vira)
 
 def traduzCarta (carta):
-    n = int(carta / 10)
-    match n:
-        case 0:
+        n = int(carta / 10)
+        if n == 0:
             naipe = "♦"
-        case 1:
+        elif n == 1:
             naipe = "♠"
-        case 2:
+        elif n == 2:
             naipe = "♥"
-        case 3:
+        elif n == 3:
             naipe = "♣"
         
-    num = carta % 10
-    match num:
-        case 0:
+        num = carta % 10
+        if num == 0:
             numero = '4'
-        case 1:
+        elif num == 1:
             numero = '5'
-        case 2:
+        elif num == 2:
             numero = '6'
-        case 3:
+        elif num == 3:
             numero = '7'
-        case 4:
+        elif num == 4:
             numero = 'Q'
-        case 5:
+        elif num == 5:
             numero = 'J'
-        case 6:
+        elif num == 6:
             numero = 'K'
-        case 7:
+        elif num == 7:
             numero = 'A'
-        case 8:
+        elif num == 8:
             numero = '2'
-        case 9:
+        elif num == 9:
             numero = '3'
-    carta_traduzida = naipe + numero
-    return carta_traduzida
+        carta_traduzida = naipe + numero
+        return carta_traduzida
 
 def imprimeMao (mao):
     if len(mao) == 0:

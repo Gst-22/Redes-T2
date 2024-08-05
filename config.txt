@@ -1,8 +1,12 @@
+localhost
 8999
 8082
+localhost
 8082
 8083
+localhost
 8083
 8084
+localhost
 8084
 8999
