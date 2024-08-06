@@ -103,4 +103,30 @@ def jogaresVivos (vidas):
     if len(jogadores_vivos) > 0:
         return (len(jogadores_vivos), jogadores_vivos[0]+1)
     else:
-        return (len(jogadores_vivos), -1)    
+        return (len(jogadores_vivos), -1)
+    
+def escolhaCarta(mao):
+    
+    if len(mao) == 1:
+        input("Pressione Enter para Jogar")
+        return mao[0]
+
+    selecao = input("Escolha uma carta (de 0 a {}):\n".format(len(mao)-1))
+    while not selecao.isdigit() or int(selecao) < 0 or int(selecao) >= len(mao):
+        selecao = input("Escolha uma carta (de 0 a {}):\n".format(len(mao)-1))
+    
+    return mao[int(selecao)]
+
+def escolhaAposta(sou_carteador, apostasTotais, tamMaoAtual):
+    if sou_carteador:
+        select = input("Faz quantos?\n")
+        while not select.isnumeric() or apostasTotais +  int(select) == tamMaoAtual or int(select) < 0 or int(select) > tamMaoAtual:
+            select = input("Faz quantos?\n")
+        
+        return int(select)
+    else:
+        select = input("Faz quantos?\n")
+        while not select.isnumeric() or int(select) < 0 or int(select) > tamMaoAtual:
+            select = input("Faz quantos?\n")
+        
+        return int(select)

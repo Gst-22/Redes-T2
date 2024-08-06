@@ -15,3 +15,6 @@ de acordo com a posição das informações da maquina no arquivo de configuraç
 
 A maquina 1 deve sempre ser a ultima a ser iniciada! 
 As demais maquinas podem ser inciadas em qualquer ordem.
+
+Quando o jogador deve enviar uma seleção de carta ou um numero de apostas, o programa repetira o
+input até que ele digite um numero valido. Digitar algo que não seja um numero causa falha no programa.

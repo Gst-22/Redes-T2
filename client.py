@@ -3,7 +3,6 @@ import ast
 import gameplay as game
 import network as net
 from network import Message
-import time
 
 machine_number = int(input("Numero da Maquina: "))
 RCV_PORT, SND_PORT, SND_IP, RCV_IP = net.set_configs(machine_number)
@@ -47,9 +46,8 @@ while Jogando: #loop principal do jogo
         game.imprimeMao(maoNumerica)
         print("Vira: " + game.traduzCarta(vira))
 
-        #Distribui as mãos de cada jogadors
+        #Distribui a mão de cada jogador
         for aux in range(3):
-            #Não envio para mim mesmo nem para jogadores mortos
             i = (machine_number + aux) % 4
             if vidas[i] > 0:
                 message = Message(3, machine_number, i+1, ' '.join(map(str, carteado.pop())), 0)
@@ -75,12 +73,8 @@ while Jogando: #loop principal do jogo
                 net.ringMessage(msg_anuncio, machine_number, SND_IP, SND_PORT, rcv_skt)
         
         #Carteador faz sua aposta
-        select = int(input("Faz quantos?\n"))
-        while apostasTotais +  select == tamMaoAtual or select < 0 or select > tamMaoAtual:
-            select = int(input("Faz quantos?\n"))
-
-        apostasDaRodada[machine_number - 1] = select #armazena a aposta do carteador
-
+        select = game.escolhaAposta(souCarteador, apostasTotais, tamMaoAtual)
+        apostasDaRodada[machine_number - 1] = select
         #Anuncia aposta do carteador
         anuncio = str(machine_number) + ' ' + str(select)
         message = Message(6, machine_number, 5, anuncio, 0)
@@ -112,11 +106,7 @@ while Jogando: #loop principal do jogo
 
             #vez do carteador
             game.imprimeMao(maoNumerica)
-            select = int(input("Escolha uma carta:\n")) 
-            while select < 0 or select >= len(maoNumerica):
-                select = int(input("Escolha uma carta:\n"))
-
-            select = maoNumerica[select]
+            select = game.escolhaCarta(maoNumerica)
             maoNumerica.remove(select)
             
             #se o carteador jogou a maior carta, ele vira o lider
@@ -184,19 +174,13 @@ while Jogando: #loop principal do jogo
                     if message["type"] == 1: #Minha vez de jogar
                         
                         game.imprimeMao(maoNumerica)
-                        select = int(input("Escolha uma carta (de 0 a {}):\n".format(len(maoNumerica)))) #loop até escolher uma carta válida
-                        while select < 0 or select >= len(maoNumerica):
-                            select = int(input("Escolha uma carta (de 0 a {}):\n".format(len(maoNumerica))))
-
-                        select = maoNumerica[select]
+                        select = game.escolhaCarta(maoNumerica)
                         maoNumerica.remove(select) #removo carta da mão
 
                         message["msg"] = str(select)#adiciono minha jogada na mensagem
 
                     elif message["type"] == 2: #Minha vez de apostar
-                        select = int(input("Faz quantos?\n"))#loop até escolher uma aposta válida
-                        while select > tamMaoAtual or select < 0: #jogadores devem fazer apostas válidas
-                            select = int(input("Faz quantos?\n"))
+                        select = game.escolhaAposta(souCarteador, apostasTotais, tamMaoAtual)
                     
                         message["msg"] = str(select)#adiciono minha aposta na mensagem
 
