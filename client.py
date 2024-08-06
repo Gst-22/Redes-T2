@@ -7,12 +7,12 @@ from network import Message
 import time
 
 machine_number = int(input("Numero da Maquina: "))
-RCV_PORT, SND_PORT, UDP_IP = config.set_configs(machine_number)
+RCV_PORT, SND_PORT, UDP_IP, MDP_IP = config.set_configs(machine_number)
 
-print ("SEND", SND_PORT, "RECEIVE", RCV_PORT, "HOST", UDP_IP)
+print ("SEND", SND_PORT, "RECEIVE", RCV_PORT, "SEND_IP", UDP_IP, "MY_IP", MDP_IP)
 
 rcv_skt = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-rcv_skt.bind((UDP_IP, RCV_PORT))
+rcv_skt.bind((MDP_IP, RCV_PORT))
 
 maoNumerica = []
 apostasTotais = 0
