@@ -31,7 +31,3 @@ def ringMessage(message, machine_number, UPD_IP, SND_PORT, RCV_SKT):
             message = ast.literal_eval(data.decode())
             if message["origem"] == machine_number and (message["recebido"] == 1 or message["recebido"] == 3):
                 return message["msg"]
-
-def passToken(UPD_IP, SND_PORT):
-    token = Message(1, 0, 0, 0, 0)
-    messageTo(token, UPD_IP, SND_PORT)

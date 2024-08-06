@@ -16,39 +16,39 @@ def sorteiaMaos(tam_mao, vivos):
     return (carteado, vira)
 
 def traduzCarta (carta):
-        n = int(carta / 10)
-        if n == 0:
-            naipe = "♦"
-        elif n == 1:
-            naipe = "♠"
-        elif n == 2:
-            naipe = "♥"
-        elif n == 3:
-            naipe = "♣"
-        
-        num = carta % 10
-        if num == 0:
-            numero = '4'
-        elif num == 1:
-            numero = '5'
-        elif num == 2:
-            numero = '6'
-        elif num == 3:
-            numero = '7'
-        elif num == 4:
-            numero = 'Q'
-        elif num == 5:
-            numero = 'J'
-        elif num == 6:
-            numero = 'K'
-        elif num == 7:
-            numero = 'A'
-        elif num == 8:
-            numero = '2'
-        elif num == 9:
-            numero = '3'
-        carta_traduzida = naipe + numero
-        return carta_traduzida
+    n = int(carta / 10)
+    if n == 0:
+        naipe = "♦"
+    elif n == 1:
+        naipe = "♠"
+    elif n == 2:
+        naipe = "♥"
+    elif n == 3:
+        naipe = "♣"
+    
+    num = carta % 10
+    if num == 0:
+        numero = '4'
+    elif num == 1:
+        numero = '5'
+    elif num == 2:
+        numero = '6'
+    elif num == 3:
+        numero = '7'
+    elif num == 4:
+        numero = 'Q'
+    elif num == 5:
+        numero = 'J'
+    elif num == 6:
+        numero = 'K'
+    elif num == 7:
+        numero = 'A'
+    elif num == 8:
+        numero = '2'
+    elif num == 9:
+        numero = '3'
+    carta_traduzida = naipe + numero
+    return carta_traduzida
 
 def imprimeMao (mao):
     if len(mao) == 0:
@@ -89,3 +89,13 @@ def compararCartas (cartaA, cartaB, vira):
         else:
             return 0
         
+def jogaresVivos (vidas):
+    jogadores_vivos = []
+    for i in range(len(vidas)):
+        if vidas[i] > 0:
+            jogadores_vivos.append(i)
+    
+    if len(jogadores_vivos) > 0:
+        return (len(jogadores_vivos), jogadores_vivos[0]+1)
+    else:
+        return (len(jogadores_vivos), -1)    
