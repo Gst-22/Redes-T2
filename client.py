@@ -16,7 +16,7 @@ rcv_skt.bind((RCV_IP, RCV_PORT))
 
 maoNumerica = []
 tamMaoAtual = 0
-vidas = [1 , 1, 1, 1]
+vidas = [4 , 4, 4, 4]
 
 souCarteador = False
 
@@ -89,7 +89,7 @@ while Jogando: #loop principal do jogo
         
         #loop de rodada
         while len(maoNumerica) > 0:
-            (maiorCarta, lider) = (0, 0)
+            (maiorCarta, lider) = (-1, 0)
             
             #Coleta as jogadas de todos os jogadores
             for aux in range(3):

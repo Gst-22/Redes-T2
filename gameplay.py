@@ -68,6 +68,11 @@ def imprimeMao (mao):
 
 
 def compararCartas (cartaA, cartaB, vira):
+    
+    #Se cartaB  for -1, cartaA é a unica valendo.
+    if cartaB == -1:
+        return 1
+    
     naipeA = int(cartaA / 10)
     naipeB = int(cartaB / 10)
     numA = cartaA % 10
