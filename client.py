@@ -1,5 +1,4 @@
 import socket
-import config as config
 import ast
 import gameplay as game
 import network as net
@@ -7,7 +6,7 @@ from network import Message
 import time
 
 machine_number = int(input("Numero da Maquina: "))
-RCV_PORT, SND_PORT, SND_IP, RCV_IP = config.set_configs(machine_number)
+RCV_PORT, SND_PORT, SND_IP, RCV_IP = net.set_configs(machine_number)
 
 print ("SEND", SND_PORT, "RECEIVE", RCV_PORT, "SEND_IP", SND_IP, "MY_IP", RCV_IP)
 
@@ -185,14 +184,13 @@ while Jogando: #loop principal do jogo
                     if message["type"] == 1: #Minha vez de jogar
                         
                         game.imprimeMao(maoNumerica)
-                        select = int(input("Escolha uma carta:\n")) #loop até escolher uma carta válida
+                        select = int(input("Escolha uma carta (de 0 a {}):\n".format(len(maoNumerica)))) #loop até escolher uma carta válida
                         while select < 0 or select >= len(maoNumerica):
-                            select = int(input("Escolha uma carta:\n"))
+                            select = int(input("Escolha uma carta (de 0 a {}):\n".format(len(maoNumerica))))
 
                         select = maoNumerica[select]
                         maoNumerica.remove(select) #removo carta da mão
-                        game.imprimeMao(maoNumerica)#printo mão atualizada
-                                    
+
                         message["msg"] = str(select)#adiciono minha jogada na mensagem
 
                     elif message["type"] == 2: #Minha vez de apostar
@@ -207,7 +205,8 @@ while Jogando: #loop principal do jogo
                         game.imprimeMao(maoNumerica)
 
                     else:
-                        print("Poop")
+                        print("ERRO: Tipo de mensagem desconhecido\n")
+                        exit(1)
             
                     net.messageTo(message, SND_IP, SND_PORT)
             
@@ -229,7 +228,6 @@ while Jogando: #loop principal do jogo
                         print(str(apostador) + " apostou " + str(aposta))
                     
                 elif message["type"] == 7: #Alguem pontuou
-                    
                     print("O jogador " + str(message["msg"]) + " pontuou")
                 
                 elif message["type"] == 8: #Jogador perdeu vida
@@ -237,7 +235,7 @@ while Jogando: #loop principal do jogo
                     
                     vidas[perdedor - 1] -= vidasPerdidas 
                     print(str(perdedor) + " perdeu " + str(vidasPerdidas) + " vidas")
-                    
+        
                     if vidas[perdedor - 1] <= 0: 
                         print(str(perdedor) + " morreu")      
                 
