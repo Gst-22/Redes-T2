@@ -7,17 +7,16 @@ from network import Message
 import time
 
 machine_number = int(input("Numero da Maquina: "))
-RCV_PORT, SND_PORT, UDP_IP, MDP_IP = config.set_configs(machine_number)
+RCV_PORT, SND_PORT, SND_IP, RCV_IP = config.set_configs(machine_number)
 
-print ("SEND", SND_PORT, "RECEIVE", RCV_PORT, "SEND_IP", UDP_IP, "MY_IP", MDP_IP)
+print ("SEND", SND_PORT, "RECEIVE", RCV_PORT, "SEND_IP", SND_IP, "MY_IP", RCV_IP)
 
 rcv_skt = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-rcv_skt.bind((MDP_IP, RCV_PORT))
+rcv_skt.bind((RCV_IP, RCV_PORT))
 
 maoNumerica = []
-apostasTotais = 0
 tamMaoAtual = 0
-vidas = [1  , 1, 1, 1]
+vidas = [1 , 1, 1, 1]
 
 souCarteador = False
 
@@ -34,6 +33,7 @@ while Jogando: #loop principal do jogo
 
     pontuacaoRodada = [0, 0, 0, 0]
     apostasDaRodada = [0, 0, 0, 0]
+    apostasTotais = 0
 
     if souCarteador: #Carteador inicia o jogo        
         print("Sou o Carteador")
@@ -42,37 +42,38 @@ while Jogando: #loop principal do jogo
 
         #Gera o carteado e o vira.
         (carteado, vira) = game.sorteiaMaos(tamMaoAtual, vivos)
-        maoNumerica = carteado[machine_number - 1]
+        maoNumerica = carteado.pop()
         
         #Imprime a mão do carteador e o vira.
         game.imprimeMao(maoNumerica)
         print("Vira: " + game.traduzCarta(vira))
 
         #Distribui as mãos de cada jogadors
-        for i in range(4):
+        for aux in range(3):
             #Não envio para mim mesmo nem para jogadores mortos
-            if i != machine_number - 1 and vidas[i] > 0:
-                message = Message(3, machine_number, i+1, ' '.join(map(str, carteado[i])), 0)
-                enviado = net.ringMessage(message, machine_number, UDP_IP, SND_PORT, rcv_skt)
+            i = (machine_number + aux) % 4
+            if vidas[i] > 0:
+                message = Message(3, machine_number, i+1, ' '.join(map(str, carteado.pop())), 0)
+                enviado = net.ringMessage(message, machine_number, SND_IP, SND_PORT, rcv_skt)
         
         #Anuncia o vira
         message = Message(10, machine_number, 5, vira, 0)
-        net.ringMessage(message, machine_number, UDP_IP, SND_PORT, rcv_skt)
+        net.ringMessage(message, machine_number, SND_IP, SND_PORT, rcv_skt)
 
         #Coleta as apostas de todos os jogadores
         for aux in range(3):
             i = (machine_number + aux) % 4
             if vidas[i] > 0:    
                 message = Message(2, machine_number, i+1, 0, 0)
-                enviado = net.ringMessage(message, machine_number, UDP_IP, SND_PORT, rcv_skt)#coleta a aposta do jogador i
-                print(str(i+1) + " apostou " + str(enviado)) #imprime a aposta do jogador i pro carteador
+                enviado = net.ringMessage(message, machine_number, SND_IP, SND_PORT, rcv_skt)
+                print(str(i+1) + " apostou " + str(enviado))
 
-                apostasDaRodada[i] = int(enviado) #armazena a aposta do jogador i
+                apostasDaRodada[i] = int(enviado)
                 apostasTotais += int(enviado)
 
                 anuncio = str(i+1) + ' ' + str(apostasDaRodada[i])
                 msg_anuncio = Message(6, machine_number, 5, anuncio, 0)
-                net.ringMessage(msg_anuncio, machine_number, UDP_IP, SND_PORT, rcv_skt)#anuncia a aposta do jogador i
+                net.ringMessage(msg_anuncio, machine_number, SND_IP, SND_PORT, rcv_skt)
         
         #Carteador faz sua aposta
         select = int(input("Faz quantos?\n"))
@@ -84,7 +85,7 @@ while Jogando: #loop principal do jogo
         #Anuncia aposta do carteador
         anuncio = str(machine_number) + ' ' + str(select)
         message = Message(6, machine_number, 5, anuncio, 0)
-        net.ringMessage(message, machine_number, UDP_IP, SND_PORT, rcv_skt)
+        net.ringMessage(message, machine_number, SND_IP, SND_PORT, rcv_skt)
         
         #loop de rodada
         while len(maoNumerica) > 0:
@@ -96,10 +97,11 @@ while Jogando: #loop principal do jogo
                 
                 if vidas[i] > 0:
                     message = Message(1, machine_number, i+1, 0, 0)
-                    enviado = net.ringMessage(message, machine_number, UDP_IP, SND_PORT, rcv_skt)
+                    enviado = net.ringMessage(message, machine_number, SND_IP, SND_PORT, rcv_skt)
                     jogada = int(enviado)
 
                     if game.compararCartas(jogada, maiorCarta, vira):
+                        "Lider: " + str(i+1)
                         maiorCarta = jogada
                         lider = i + 1
                         
@@ -107,7 +109,7 @@ while Jogando: #loop principal do jogo
                     
                     anuncio = str(i+1) + ' ' + str(jogada)
                     msg_anuncio = Message(5, machine_number, 5, anuncio, 0)
-                    net.ringMessage(msg_anuncio, machine_number, UDP_IP, SND_PORT, rcv_skt)
+                    net.ringMessage(msg_anuncio, machine_number, SND_IP, SND_PORT, rcv_skt)
 
             #vez do carteador
             game.imprimeMao(maoNumerica)
@@ -125,13 +127,13 @@ while Jogando: #loop principal do jogo
             
             anuncio = str(machine_number) + ' ' + str(select)
             msg_anuncio = Message(5, machine_number, 5, anuncio, 0)
-            net.ringMessage(msg_anuncio, machine_number, UDP_IP, SND_PORT, rcv_skt)
+            net.ringMessage(msg_anuncio, machine_number, SND_IP, SND_PORT, rcv_skt)
 
             pontuacaoRodada[lider - 1] += 1 #pontua o lider
 
             #anuncia o campeão da rodada
             my_anuncio = Message(7, machine_number, 5, lider, 0)
-            net.ringMessage(my_anuncio, machine_number, UDP_IP, SND_PORT, rcv_skt)
+            net.ringMessage(my_anuncio, machine_number, SND_IP, SND_PORT, rcv_skt)
             print("O jogador " + str(lider) + " pontuou")
 
         for i in range(4): #para cada jogador, verifica se a aposta foi correta, se não, perde vida
@@ -139,7 +141,7 @@ while Jogando: #loop principal do jogo
                 vidasPerdidas = abs(apostasDaRodada[i] - pontuacaoRodada[i]) #calcula quantas vidas foram perdidas
                 aviso = str(i+1) + " " + str(vidasPerdidas) #a mensagem deve indicar quantas vidas foram perdidas e quem perdeu
                 my_message = Message(8, machine_number, 5, aviso, 0)#mensagem de perda de vida
-                enviado = net.ringMessage(my_message, machine_number, UDP_IP, SND_PORT, rcv_skt)
+                enviado = net.ringMessage(my_message, machine_number, SND_IP, SND_PORT, rcv_skt)
                 vidas[i] -= vidasPerdidas #reduz as vidas do jogador i
                 print(str(i+1) + " perdeu " + str(vidasPerdidas) + " vidas")
                 if vidas[i] <= 0: #se o jogador i ficou sem vidas, ele morre
@@ -152,7 +154,7 @@ while Jogando: #loop principal do jogo
             for aux in range(4):
                 i = (machine_number + aux) % 4
                 message = Message(9, machine_number, 5, 0, 0)
-                enviado = net.messageTo(message, UDP_IP, SND_PORT)
+                enviado = net.messageTo(message, SND_IP, SND_PORT)
             print("Fim de rodada")
             
             if vencedor != -1:
@@ -167,7 +169,7 @@ while Jogando: #loop principal do jogo
             #carteador passa a vez
             souCarteador = False 
             token = Message(4, machine_number, 0, 0, 0)
-            net.messageTo(token, UDP_IP, SND_PORT)
+            net.messageTo(token, SND_IP, SND_PORT)
 
     while rodando: #espero mensagem, envio confirmação.
         data, addr = rcv_skt.recvfrom(1024)
@@ -207,7 +209,7 @@ while Jogando: #loop principal do jogo
                     else:
                         print("Poop")
             
-                    net.messageTo(message, UDP_IP, SND_PORT)
+                    net.messageTo(message, SND_IP, SND_PORT)
             
             elif message["destino"] == 5: #mensagem é para todos
                 
@@ -255,14 +257,14 @@ while Jogando: #loop principal do jogo
                 elif message["type"] == 10: #Revela o vira
                     print("Vira: " + game.traduzCarta(message["msg"]))
             
-                net.messageTo(message, UDP_IP, SND_PORT)
+                net.messageTo(message, SND_IP, SND_PORT)
             
             elif message["type"] == 4 and vidas[machine_number - 1] > 0: #Eu sou o novo carteador
                 souCarteador = True
                 message = Message(9, machine_number, 5, 0, 0)#novo carteador avisa o vim de rodada
-                net.ringMessage(message, machine_number, UDP_IP, SND_PORT, rcv_skt)
+                net.ringMessage(message, machine_number, SND_IP, SND_PORT, rcv_skt)
                 rodando = False
                 print("Fim de rodada")
             
             else:
-                net.messageTo(message, UDP_IP, SND_PORT)
+                net.messageTo(message, SND_IP, SND_PORT)
